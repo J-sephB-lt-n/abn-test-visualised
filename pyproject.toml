@@ -3,7 +3,7 @@ requires      = ["setuptools>=69.2.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "understand"
+name = "understanding"
 version = "0.0.0"
 description = "Visualisations for understanding statistical concepts"
 readme = "README.md"
