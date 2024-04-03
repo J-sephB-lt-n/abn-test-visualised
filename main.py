@@ -12,8 +12,10 @@ Example usage:
 import argparse
 import random
 
+import matplotlib
+import matplotlib.cm
+import matplotlib.animation
 import matplotlib.pyplot as plt
-import matplotlib.animation as animation
 
 # python my_script_name.py abc def --debug --filename temp.html -n 69
 parser = argparse.ArgumentParser()
@@ -41,10 +43,11 @@ parser.add_argument(
 parser.add_argument("-d", "--n_sim_days", help="Number of days to simulate", type=int)
 args = parser.parse_args()
 
-print(args.group_names)
-print(args.n_obs_per_day)
-print(args.true_rates)
-print(args.n_sim_days)
+matplotlib.use("Agg")
+
+N_GROUPS = len(args.group_names)
+
+plot_cmap = matplotlib.cm.get_cmap("viridis", N_GROUPS)
 
 group_history = dict()
 for grp_idx, grp_name in enumerate(args.group_names):
@@ -67,6 +70,7 @@ for grp_idx, grp_name in enumerate(args.group_names):
         ],
         "cumulative_n_successes": None,
         "cumulative_success_rate": None,
+        "plot_colour": plot_cmap(grp_idx),
     }
     group_history[grp_name]["cumulative_n_successes"] = [
         sum(group_history[grp_name]["successes_per_day"][:day_idx])
@@ -80,30 +84,64 @@ for grp_idx, grp_name in enumerate(args.group_names):
         )
     ]
 
-from pprint import pprint
-
-pprint(group_history)
-"""
 fig, ax = plt.subplots()
 
-x = range(N_PERIODS)
-y = [random.uniform(0.0, 0.1) for _ in range(N_PERIODS)]
+x = range(args.n_sim_days)
+ax.set(
+    xlim=(0, args.n_sim_days),
+    # ylim=(0, 0.1),
+    xlabel="Day",
+    ylabel="Cumulative Open Rate",
+)
+grp_iter = iter(group_history.items())
+grp_name, grp_info = next(grp_iter)
+lineplot = ax.plot(
+    x[0],
+    grp_info["cumulative_success_rate"][0],
+    label=grp_name,
+    color=grp_info["plot_colour"],
+)
+ax.axhline(y=grp_info["true_rate"], color=grp_info["plot_colour"], alpha=0.5)
+for grp_name, grp_info in grp_iter:
+    ax.plot(
+        x[0],
+        grp_info["cumulative_success_rate"][0],
+        label=grp_name,
+        color=grp_info["plot_colour"],
+    )
+    ax.axhline(y=grp_info["true_rate"], color=grp_info["plot_colour"], alpha=0.5)
 
-lineplot = ax.plot(x[0], y[0], label="y", color="red")
-ax.set(xlim=(0, N_PERIODS), ylim=(0, 0.1), xlabel="Period", ylabel="y")
 ax.legend()
 
 
 def update_plot(frame_idx):
-    new_plot = ax.plot(x[:frame_idx], y[:frame_idx], color="red")
+    grp_iter = iter(group_history.items())
+    grp_name, grp_info = next(grp_iter)
+    new_plot = ax.plot(
+        x[:frame_idx],
+        grp_info["cumulative_success_rate"][:frame_idx],
+        label=grp_name,
+        color=grp_info["plot_colour"],
+    )
+    for grp_name, grp_info in grp_iter:
+        ax.plot(
+            x[:frame_idx],
+            grp_info["cumulative_success_rate"][:frame_idx],
+            label=grp_name,
+            color=grp_info["plot_colour"],
+        )
+
     return new_plot
 
 
-plt_anim = animation.FuncAnimation(
+plt_anim = matplotlib.animation.FuncAnimation(
     fig=fig,
     func=update_plot,
-    frames=range(N_PERIODS),
-    interval=500,  # delay between frames (milliseconds)
+    frames=range(args.n_sim_days),
+    interval=100,  # delay between frames (milliseconds)
+    repeat=True,
 )
+
+print("exporting gif to ./output.gif")
+#plt_anim.save("./output.gif", writer="imagemagick", fps=5)
 plt.show()
-"""
