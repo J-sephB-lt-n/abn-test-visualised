@@ -33,7 +33,7 @@ def simulate_cumulative_abn_test(
 
     Example:
     >>> simulate_cumulative_abn_test(
-    ... group_names = ("treat", "control"),
+    ... group_names = ("Treatment Group", "Control Group"),
     ... n_obs_per_period = (100, 30),
     ... true_success_rates = (0.05, 0.08),
     ... n_periods = 100,
@@ -50,7 +50,78 @@ def simulate_cumulative_abn_test(
             )
     plot_cmap = matplotlib.colormaps["viridis"]
     plot_colours = [plot_cmap(x / (N_GROUPS - 1)) for x in range(N_GROUPS)]
-    print(plot_colours)
+
+    sim_data = dict()
+    for grp_idx, grp_name in enumerate(group_names):
+        sim_data[grp_name] = {
+            "n_obs_per_period": n_obs_per_period[grp_idx],
+            "true_success_rate": true_success_rates[grp_idx],
+            "n_success_in_period": [
+                sum(
+                    random.choices(
+                        [0, 1],
+                        weights=[
+                            1 - true_success_rates[grp_idx],
+                            true_success_rates[grp_idx],
+                        ],
+                        k=n_obs_per_period[grp_idx],
+                    )
+                )
+                for _ in range(n_periods)
+            ],
+            "cumulative_n_obs": [
+                (period_cnt * n_obs_per_period[grp_idx])
+                for period_cnt in range(1, n_periods + 1)
+            ],
+            "cumulative_n_success": None,
+            "cumulative_success_rate": None,
+            "plot_colour": plot_colours[grp_idx],
+        }
+        sim_data[grp_name]["cumulative_n_success"] = [
+            sum(sim_data[grp_name]["n_success_in_period"][:period_idx])
+            for period_idx in range(1, n_periods + 1)
+        ]
+        sim_data[grp_name]["cumulative_success_rate"] = [
+            n_success / n_obs
+            for n_success, n_obs in zip(
+                sim_data[grp_name]["cumulative_n_success"],
+                sim_data[grp_name]["cumulative_n_obs"],
+            )
+        ]
+
+    fig, ax = plt.subplots()
+    x = range(n_periods)
+    ax.set(xlabel="Period", ylabel="Cumulative Success Rate")
+    grp_iter = iter(sim_data.items())
+    grp_name, grp_info = next(grp_iter)
+    lineplot = ax.plot(
+        x[0],
+        grp_info["cumulative_success_rate"][0],
+        label=f"Observed Success Rate: {grp_name}",
+        color=grp_info["plot_colour"],
+    )
+    ax.axhline(
+        y=grp_info["true_success_rate"],
+        linestyle="dotted",
+        color=grp_info["plot_colour"],
+        label=f"True success rate: {grp_name}",
+    )
+    for grp_name, grp_info in grp_iter:
+        ax.plot(
+            x[0],
+            grp_info["cumulative_success_rate"][0],
+            label=f"Observed Success Rate: {grp_name}",
+            color=grp_info["plot_colour"],
+        )
+        ax.axhline(
+            y=grp_info["true_success_rate"],
+            linestyle="dotted",
+            color=grp_info["plot_colour"],
+            label=f"True success rate: {grp_name}",
+        )
+
+    ax.legend()
+    plt.show()
 
 
 if __name__ == "__main__":
