@@ -89,38 +89,31 @@ def simulate_cumulative_abn_test(
             )
         ]
 
-    fig, ax = plt.subplots()
+    fig, axs = plt.subplots(3)
     x = range(n_periods)
-    ax.set(xlabel="Period", ylabel="Cumulative Success Rate")
+    axs[1].set(xlabel="Period", ylabel="Cumulative Success Rate")
     grp_iter = iter(sim_data.items())
-    grp_name, grp_info = next(grp_iter)
-    lineplot = ax.plot(
-        x[0],
-        grp_info["cumulative_success_rate"][0],
-        label=f"Observed Success Rate: {grp_name}",
-        color=grp_info["plot_colour"],
-    )
-    ax.axhline(
-        y=grp_info["true_success_rate"],
-        linestyle="dotted",
-        color=grp_info["plot_colour"],
-        label=f"True success rate: {grp_name}",
-    )
     for grp_name, grp_info in grp_iter:
-        ax.plot(
+        axs[0].plot(
+            x[0],
+            grp_info["cumulative_n_success"][0],
+            label=grp_name,
+            color=grp_info["plot_colour"],
+        )
+        axs[1].plot(
             x[0],
             grp_info["cumulative_success_rate"][0],
             label=f"Observed Success Rate: {grp_name}",
             color=grp_info["plot_colour"],
         )
-        ax.axhline(
+        axs[1].axhline(
             y=grp_info["true_success_rate"],
             linestyle="dotted",
             color=grp_info["plot_colour"],
             label=f"True success rate: {grp_name}",
         )
 
-    ax.legend()
+    axs[1].legend()
     plt.show()
 
 
