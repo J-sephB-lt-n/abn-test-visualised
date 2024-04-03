@@ -1,9 +1,9 @@
-# abn-test-visualised
-Understanding the variability of data by visualising a simulated a/b/n test
+# A library of explanatory visualisations of statistical concepts 
 
 Install required dependencies:
 
 ```bash
 pip install -r requirements.txt
-brew install imagemagick # if on MacOS (see https://imagemagick.org/script/download.php for other platforms)
 ```
+
+[ImageMagick](https://imagemagick.org) is required for export of animations to GIF.
