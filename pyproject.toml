@@ -1,0 +1,25 @@
+[build-system]
+requires      = ["setuptools>=69.2.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "understand"
+version = "0.0.0"
+description = "Visualisations for understanding statistical concepts"
+readme = "README.md"
+authors = [{ name = "Joseph Bolton", email = "joseph.jazz.bolton@gmail.com" }]
+license = { file = "LICENSE" }
+classifiers = [
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+]
+keywords = ["dataviz","education","statistics","visualisation"]
+dependencies = ["matplotlib"]
+requires-python = ">=3.6"
+
+[project.optional-dependencies]
+build = ["build", "twine"]
+
+[project.urls]
+Homepage = "https://github.com/J-sephB-lt-n/understanding"

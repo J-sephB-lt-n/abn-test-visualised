@@ -6,13 +6,13 @@ Example usage:
             --group_names treatment1,treatment2,control \
             --n_obs_per_day 50,50,50 \
             --true_rates 0.1,0.08,0.09 \
-            --n_sim_days 20
+            --n_sim_days 20 \
+            --export_to_gif
 """
 
 import argparse
 import random
 
-import matplotlib
 import matplotlib.cm
 import matplotlib.animation
 import matplotlib.pyplot as plt
@@ -41,9 +41,13 @@ parser.add_argument(
     required=True,
 )
 parser.add_argument("-d", "--n_sim_days", help="Number of days to simulate", type=int)
+parser.add_argument(
+    "-e",
+    "--export_to_gif",
+    help="If this flag is included, animation is exported to ./output.gif",
+    action="store_true",
+)
 args = parser.parse_args()
-
-matplotlib.use("Agg")
 
 N_GROUPS = len(args.group_names)
 
@@ -113,7 +117,6 @@ for grp_name, grp_info in grp_iter:
 
 ax.legend()
 
-
 def update_plot(frame_idx):
     grp_iter = iter(group_history.items())
     grp_name, grp_info = next(grp_iter)
@@ -142,6 +145,12 @@ plt_anim = matplotlib.animation.FuncAnimation(
     repeat=True,
 )
 
-print("exporting gif to ./output.gif")
-#plt_anim.save("./output.gif", writer="imagemagick", fps=5)
-plt.show()
+if args.export_to_gif:
+    print("exporting gif to ./output.gif")
+    plt_anim.save(
+        "./output.gif",
+        writer="imagemagick",
+        progress_callback=lambda i, n: print(f"Saving frame {i}/{n}"),
+    )
+else:
+    plt.show()
