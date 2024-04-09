@@ -1,6 +1,9 @@
 """
 Defines function 
 simulate_cumulative_abn_test()
+
+local test:
+    $ python understanding/experiment_design/simulate_cumulative_abn_test.py
 """
 
 import random
@@ -34,9 +37,9 @@ def simulate_cumulative_abn_test(
     Example:
     >>> simulate_cumulative_abn_test(
     ... group_names = ("Treatment Group", "Control Group"),
-    ... n_obs_per_period = (100, 30),
-    ... true_success_rates = (0.05, 0.08),
-    ... n_periods = 100,
+    ... n_obs_per_period = (100, 20),
+    ... true_success_rates = (0.05, 0.06),
+    ... n_periods = 200,
     ... )
     """
     N_GROUPS: Final[int] = len(group_names)
@@ -89,7 +92,7 @@ def simulate_cumulative_abn_test(
             )
         ]
 
-    fig, axs = plt.subplots(3)
+    fig, axs = plt.subplots(2)
     x = range(n_periods)
     axs[1].set(xlabel="Period", ylabel="Cumulative Success Rate")
     grp_iter = iter(sim_data.items())
@@ -112,8 +115,33 @@ def simulate_cumulative_abn_test(
             color=grp_info["plot_colour"],
             label=f"True success rate: {grp_name}",
         )
+    axs[0].legend(loc="upper left")
 
-    axs[1].legend()
+    def update_plot(frame_idx):
+        grp_iter = iter(sim_data.items())
+        for grp_name, grp_info in grp_iter:
+            axs[0].plot(
+                x[:frame_idx],
+                grp_info["cumulative_n_success"][:frame_idx],
+                label=grp_name,
+                color=grp_info["plot_colour"],
+            )
+            axs[1].plot(
+                x[:frame_idx],
+                grp_info["cumulative_success_rate"][:frame_idx],
+                label=f"Observed Success Rate: {grp_name}",
+                color=grp_info["plot_colour"],
+            )
+        return axs
+
+    plt_anim = matplotlib.animation.FuncAnimation(
+        fig=fig,
+        func=update_plot,
+        frames=range(n_periods),
+        interval=200,  # delay between frames (milliseconds)
+        repeat=True,
+    )
+
     plt.show()
 
 
