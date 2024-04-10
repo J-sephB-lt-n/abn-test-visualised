@@ -70,11 +70,11 @@ def simulate_cumulative_abn_test(
                         k=n_obs_per_period[grp_idx],
                     )
                 )
-                for _ in range(n_periods)
+                for period_num in range(1, n_periods + 1)
             ],
             "cumulative_n_obs": [
-                (period_cnt * n_obs_per_period[grp_idx])
-                for period_cnt in range(1, n_periods + 1)
+                (period_num * n_obs_per_period[grp_idx])
+                for period_num in range(1, n_periods + 1)
             ],
             "cumulative_n_success": None,
             "cumulative_success_rate": None,
@@ -92,14 +92,19 @@ def simulate_cumulative_abn_test(
             )
         ]
 
-    fig, axs = plt.subplots(2)
+    fig, axs = plt.subplots(2, 1, figsize=(10, 5))
+    if len(sim_data) == 2:
+        plt.suptitle("Simulated A/B Test")
+    else:
+        plt.suptitle("Simulated A/B/n Test")
     x = range(n_periods)
-    axs[1].set(xlabel="Period", ylabel="Cumulative Success Rate")
+    axs[0].set(ylabel="Sample Size\n(cumulative)")
+    axs[1].set(xlabel="Period", ylabel="Observed Success Rate\n(cumulative)")
     grp_iter = iter(sim_data.items())
     for grp_name, grp_info in grp_iter:
         axs[0].plot(
             x[0],
-            grp_info["cumulative_n_success"][0],
+            grp_info["cumulative_n_obs"][0],
             label=grp_name,
             color=grp_info["plot_colour"],
         )
@@ -122,7 +127,7 @@ def simulate_cumulative_abn_test(
         for grp_name, grp_info in grp_iter:
             axs[0].plot(
                 x[:frame_idx],
-                grp_info["cumulative_n_success"][:frame_idx],
+                grp_info["cumulative_n_obs"][:frame_idx],
                 label=grp_name,
                 color=grp_info["plot_colour"],
             )
