@@ -20,6 +20,7 @@ def simulate_cumulative_abn_test(
     true_success_rates: tuple[float, ...],
     n_periods: int,
     gif_export_path: str | None = None,
+    anim_kwargs: dict | None = None,
 ):
     """
     Simulates an a/b/n test and visualises it with an animation
@@ -33,12 +34,19 @@ def simulate_cumulative_abn_test(
         n_periods (int): Number of periods to simulate
         gif_export_path (:obj:`str`, optional): If included, exports the animation as a
                                                 GIF to this path
+        anim_kwargs (:obj:`dict`, optional): Named arguments to pass to matplotlib.animation.FuncAnimation()
 
-    Example:
+    Examples:
     >>> simulate_cumulative_abn_test(
     ... group_names = ("Treatment Group", "Control Group"),
     ... n_obs_per_period = (100, 20),
     ... true_success_rates = (0.05, 0.06),
+    ... n_periods = 200,
+    ... )
+    >>> simulate_cumulative_abn_test(
+    ... group_names = ("Grp1","Grp2","Grp3", "Grp4", "Grp5"),
+    ... n_obs_per_period = (5, 15, 20, 25, 30),
+    ... true_success_rates = (0.05, 0.01, 0.03, 0.02, 0.06),
     ... n_periods = 200,
     ... )
     """
@@ -92,7 +100,7 @@ def simulate_cumulative_abn_test(
             )
         ]
 
-    fig, axs = plt.subplots(2, 1, figsize=(10, 5))
+    fig, axs = plt.subplots(2, 1, figsize=(10, 8))
     if len(sim_data) == 2:
         plt.suptitle("Simulated A/B Test")
     else:
@@ -111,7 +119,7 @@ def simulate_cumulative_abn_test(
         axs[1].plot(
             x[0],
             grp_info["cumulative_success_rate"][0],
-            label=f"Observed Success Rate: {grp_name}",
+            # label=f"Observed Success Rate: {grp_name}",
             color=grp_info["plot_colour"],
         )
         axs[1].axhline(
@@ -121,6 +129,8 @@ def simulate_cumulative_abn_test(
             label=f"True success rate: {grp_name}",
         )
     axs[0].legend(loc="upper left")
+    axs[0].grid()
+    axs[1].legend(loc="upper right")
 
     def update_plot(frame_idx):
         grp_iter = iter(sim_data.items())
@@ -139,16 +149,27 @@ def simulate_cumulative_abn_test(
             )
         return axs
 
+    if anim_kwargs is None:
+        anim_kwargs = {
+            "interval": 200,  # delay between frames (milliseconds)
+            "repeat": True,
+        }
+
     plt_anim = matplotlib.animation.FuncAnimation(
         fig=fig,
         func=update_plot,
         frames=range(n_periods),
-        interval=200,  # delay between frames (milliseconds)
-        repeat=True,
+        **anim_kwargs,
     )
 
-    plt.show()
-
+    if gif_export_path is None:
+        plt.show()
+    else:
+        plt_anim.save(
+            gif_export_path,
+            writer="imagemagick",
+            progress_callback=lambda i, n: print(f"Saving frame {i}/{n}"),
+        )
 
 if __name__ == "__main__":
     import doctest
